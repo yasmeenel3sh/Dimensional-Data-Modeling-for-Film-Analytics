@@ -1,46 +1,51 @@
-# 📊 Get Set for Data Modeling (Weeks 1 & 2)
+# Dimensional Data Modeling 
 
-Welcome, Data Explorer! 🚀 Whether you're just beginning or brushing up on skills, this guide will walk you through everything you need — from installing tools to troubleshooting hiccups — all in one friendly place.
+This assignment involves working with the `actor_films` dataset. The task is to construct a series of SQL queries and table definitions that will allow us to model the actor_films dataset in a way that facilitates efficient analysis. This involves creating new tables, defining data types, and writing queries to populate these tables with data from the actor_films dataset
 
----
+## Dataset Overview
+The `actor_films` dataset contains the following fields:
 
-## 🧰 Your Dev Toolkit at a Glance
+- `actor`: The name of the actor.
+- `actorid`: A unique identifier for each actor.
+- `film`: The name of the film.
+- `year`: The year the film was released.
+- `votes`: The number of votes the film received.
+- `rating`: The rating of the film.
+- `filmid`: A unique identifier for each film.
 
-🟦 **Git**  
-_Clone code, version your work._
+The primary key for this dataset is (`actor_id`, `film_id`).
 
-🟪 **PostgreSQL**  
-_Reliable, powerful open-source database engine._
+## Tasks Done
 
-⬛ **PSQL (CLI)**  
-_Talk directly to your database via terminal._
+1. **DDL for `actors` table:** Create a DDL for an `actors` table with the following fields:
+    - `films`: An array of `struct` with the following fields:
+		- film: The name of the film.
+		- votes: The number of votes the film received.
+		- rating: The rating of the film.
+		- filmid: A unique identifier for each film.
 
-🐳 **Docker + Compose**  
-_Spin up Postgres + PGAdmin instantly, no manual setup._
+    - `quality_class`: This field represents an actor's performance quality, determined by the average rating of movies of their most recent year. It's categorized as follows:
+		- `star`: Average rating > 8.
+		- `good`: Average rating > 7 and ≤ 8.
+		- `average`: Average rating > 6 and ≤ 7.
+		- `bad`: Average rating ≤ 6.
+    - `is_active`: A BOOLEAN field that indicates whether an actor is currently active in the film industry (i.e., making films this year).
+    
+2. **Cumulative table generation query:** Write a query that populates the `actors` table one year at a time.
+    
+3. **DDL for `actors_history_scd` table:** Create a DDL for an `actors_history_scd` table with the following features:
+    - Implements type 2 dimension modeling (i.e., includes `start_date` and `end_date` fields).
+    - Tracks `quality_class` and `is_active` status for each actor in the `actors` table.
+      
+4. **Backfill query for `actors_history_scd`:** Write a "backfill" query that can populate the entire `actors_history_scd` table in a single query.
+    
+5. **Incremental query for `actors_history_scd`:** Write an "incremental" query that combines the previous year's SCD data with new incoming data from the `actors` table.
 
-🧑‍💻 **PGAdmin / DBeaver / VS Code**  
-_Graphical tools for exploring and querying your data._
 
----
 
-## 📝 Your Setup in 3 Steps
 
-### Step 1️⃣: Download the Code
+# 📊 Get Set for Data Modeling 
 
-Clone the course files onto your machine:
-
-```bash
-git clone git@github.com:DataExpert-io/data-engineer-handbook.git
-cd data-engineer-handbook/bootcamp/materials/1-dimensional-data-modeling
-```
-
-> 🔐 Need SSH set up first? Use [GitHub’s SSH guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
-
----
-
-### Step 2️⃣: Start PostgreSQL
-
-#### 🐳 Option A: Docker (Simplest & Preferred)
 
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop)  
 2. Copy the env template:
@@ -73,29 +78,8 @@ docker ps -a
 docker compose stop
 ```
 
----
 
-#### 🧩 Option B: Local Installation (Manual Setup)
-
-1. Install PostgreSQL  
-   - [Mac – use Homebrew](https://brew.sh/)  
-   - [Windows – official installer](https://www.postgresql.org/download/)
-
-2. Restore the sample database:
-
-```bash
-pg_restore -c --if-exists -U <your-username> -d postgres data.dump
-```
-
-If that fails, try:
-
-```bash
-pg_restore -U [username] -d [db_name] -h [host] -p [port] data.dump
-```
-
----
-
-### Step 3️⃣: Connect to PostgreSQL
+### Connect to PostgreSQL
 
 Choose any GUI tool you like. Here’s how:
 
@@ -135,123 +119,6 @@ Use the following values to set up a new PostgreSQL connection:
 
 ---
 
-## 🧩 Tables Not Loading? Let’s Fix It!
-
-If you don’t see any tables after restoring the database, try these steps depending on how you installed Postgres:
-
-### 📦 For Local Installation (No Docker)
-
-1. **Find your `psql` client executable** (on Windows):
-
-```bash
-C:\Program Files\PostgreSQL\13\runpsql.bat
-```
-
-Or search for **SQL Shell (psql)** in your Start menu.
-
-2. **Open your terminal and `cd` into the repo folder**, where `data.dump` is located.
-
-3. **Run `psql` and enter credentials** (username is usually `postgres`)
-
-4. Once you’re inside the Postgres prompt (`postgres=#`), run:
-
-```sql
-\i data.dump
-```
-
-> 🧠 This tells Postgres to execute all SQL commands inside the dump file, creating tables and loading data.
-
----
-
-### 🐳 For Docker Users
-
-1. Get your running containers:
-
-```bash
-docker ps
-```
-
-2. Copy the name of your Postgres container (e.g., `my-postgres-container`)
-
-3. Open a bash terminal inside it:
-
-```bash
-docker exec -it my-postgres-container bash
-```
-
-4. Run the restore manually from inside the container:
-
-```bash
-pg_restore -U $POSTGRES_USER -d $POSTGRES_DB /docker-entrypoint-initdb.d/data.dump
-```
-
-> ✅ Replace `$POSTGRES_USER` and `$POSTGRES_DB` with actual values from your `.env` file if needed.
-
-5. Optionally check if tables are loaded:
-
-```bash
-psql -U postgres -d postgres -c '\dt'
-```
-
-This shows all the tables in the current schema.
-
----
-
-## ❓ Common Errors & Fixes
-
-### ❌ “Connection refused” or can’t connect to localhost?
-
-- Double check host is correct (`localhost` or `my-postgres-container`)
-- Ensure Docker is running and the container is up
-- Try restarting the services with `make restart`
-
----
-
-### 🔄 Port 5432 already in use?
-
-You may have another service (like another DB) using it.
-
-#### macOS:
-
-```bash
-lsof -i :5432
-kill -9 <PID>
-```
-
-#### Windows:
-
-```cmd
-netstat -ano | findstr :5432
-taskkill /PID <PID> /F
-```
-
----
-
-### 🚪 PGAdmin login not working?
-
-Make sure you’re using values from `.env`:
-
-```env
-PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
-PGADMIN_DEFAULT_PASSWORD=postgres
-```
-
-If you've changed the `.env`, delete the PGAdmin container and re-run `make up`.
-
----
-
-### 🕵️ Not sure which container is which?
-
-Run:
-
-```bash
-docker ps
-```
-
-Look under the `NAMES` column for `my-postgres-container` and `pgadmin`.
-
----
-
 ### 🔁 Want a fresh start?
 
 Stop and remove all running containers:
@@ -282,4 +149,4 @@ make restart
 
 ---
 
-🎉 That’s it! You’re all set for the next chapters of your data journey.
+🎉 That’s it!
